@@ -94,11 +94,6 @@ router.get("/secret", verifyJWT, (req, res) => {
 });
 
 router.get("/:heroID", verifyJWT, async (req, res) => {
-  // verifikasi jwt-nya
-  // ambil heroID dari param
-  // compare id dengan param, jika tidak sama kembalikan 403
-  // ambil heromodel lalu query dengan find by id
-  // lalu kembalikan ke client tanpa password
   const heroIDParam = req.params.heroID;
   const heroIDJWT = res.locals.id;
 
@@ -131,10 +126,45 @@ router.get("/:heroID", verifyJWT, async (req, res) => {
   }
 });
 
+router.put("/:heroId", verifyJWT, async (req, res) => {
+  const { token, ...newHeroProfileData } = req.body;
+  const heroIDJWT = res.locals.id;
+  const heroIDParam = newHeroProfileData.id;
+  if (heroIDParam !== heroIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    const hero = await heroModel.findById(heroIDJWT);
+
+    // update data based on newHeroProfileData
+    const { name, alamat } = newHeroProfileData;
+    hero.name = name;
+    hero.alamat = alamat;
+
+    await hero.save();
+    res.json({
+      id: hero._id,
+      name: hero.name,
+      phone: hero.phone,
+      alamat: {
+        rt: hero.alamat.rt,
+        rw: hero.alamat.rw,
+        jalan: hero.alamat.jalan,
+        kelurahan: hero.alamat.kelurahan,
+        kecamatan: hero.alamat.kecamatan,
+        kota: hero.alamat.kota,
+        provinsi: hero.alamat.provinsi,
+      },
+      transaksi: {
+        penjualan: hero.transaksi.penjualan,
+        impact: hero.transaksi.impact,
+      },
+    });
+  }
+});
+
 router.get("/:heroID/transactions", verifyJWT, async (req, res) => {
   const heroIDParam = req.params.heroID;
   const heroIDJWT = res.locals.id;
-
   if (heroIDParam !== heroIDJWT) {
     res.status(403).json({ status: "Forbidden" });
   } else {
