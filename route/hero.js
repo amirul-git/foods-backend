@@ -272,6 +272,42 @@ router.get("/:heroID/menus/:menuID", verifyJWT, async (req, res) => {
   }
 });
 
+router.put(
+  "/:heroID/menus/:menuID",
+  upload.single("photo"),
+  verifyJWT,
+  async (req, res) => {
+    const { heroID, menuID } = req.params;
+    const heroIDJWT = res.locals.id;
+    const { path } = req.file; //photo path
+    const { name, isfree, price } = req.body;
+    const newMenuData = { name, path, isfree, price };
+
+    if (heroID !== heroIDJWT) {
+      res.status(403).json({ status: "Forbidden" });
+    } else {
+      try {
+        const menu = await menuModel.findById(menuID);
+
+        // delete old photo from menu
+        unlink(menu.photo, (err) => {
+          if (err) throw err;
+        });
+
+        // update menu with new menu data and save
+        (menu.name = newMenuData.name),
+          (menu.photo = newMenuData.path),
+          (menu.isfree = JSON.parse(newMenuData.isfree));
+        menu.price = newMenuData.price;
+        await menu.save();
+        res.json(menu);
+      } catch (error) {
+        res.json(error);
+      }
+    }
+  }
+);
+
 router.delete("/:heroID/menus/:menuID", verifyJWT, async (req, res) => {
   const { heroID, menuID } = req.params;
   const heroIDJWT = res.locals.id;
