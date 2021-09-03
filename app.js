@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const path = require("path");
 const port = 3000;
 
 // route
@@ -8,9 +9,8 @@ const hero = require("./route/hero");
 
 // middleware
 app.use(express.json());
-
+app.use("/photos", express.static(path.join(__dirname, "photos")));
 app.use("/hero", hero);
-
 app.use((req, res) => {
   res.send("404 not found");
 });
