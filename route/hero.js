@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+const { unlink } = require("fs");
 
 const heroModel = require("../schema/heroSchema");
 const menuModel = require("../schema/menuSchema");
@@ -259,5 +260,42 @@ router.post(
     }
   }
 );
+
+router.get("/:heroID/menus/:menuID", verifyJWT, async (req, res) => {
+  const { heroID, menuID } = req.params;
+  const heroIDJWT = res.locals.id;
+  if (heroID !== heroIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    const menu = await menuModel.findById(menuID);
+    res.json(menu);
+  }
+});
+
+router.delete("/:heroID/menus/:menuID", verifyJWT, async (req, res) => {
+  const { heroID, menuID } = req.params;
+  const heroIDJWT = res.locals.id;
+
+  if (heroID !== heroIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const menu = await menuModel.findById(menuID);
+      const photoPath = menu.photo;
+
+      // delete in photo, db
+      unlink(photoPath, (err) => {
+        if (err) throw err;
+        menuModel.findByIdAndDelete(menuID, (err) => {
+          if (err) throw err;
+        });
+      });
+
+      res.json({ status: "delete success" });
+    } catch (error) {
+      res.send(error);
+    }
+  }
+});
 
 module.exports = router;
