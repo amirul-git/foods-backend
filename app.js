@@ -12,7 +12,7 @@ app.use(express.json());
 app.use("/photos", express.static(path.join(__dirname, "photos")));
 app.use("/hero", hero);
 app.use((req, res) => {
-  res.send("404 not found");
+  res.status(404).send("Not Found");
 });
 
 mongoose
