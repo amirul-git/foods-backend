@@ -1,9 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const heroModel = require("../schema/heroSchema");
+const multer = require("multer");
 
+const heroModel = require("../schema/heroSchema");
+const menuModel = require("../schema/menuSchema");
 const jwtsecret = "hayolo apa lo passwordnya";
+
+// multer implementation
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "photos");
+  },
+  filename: function (req, file, cb) {
+    const fileName = `${Date.now()}-${file.originalname}`;
+    cb(null, fileName);
+  },
+});
+
+function fileFilter(req, file, cb) {
+  const isMimeTypeCorrect = ["image/png", "image/jpeg"].includes(file.mimetype);
+  if (isMimeTypeCorrect) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+}
+
+const upload = multer({ storage, fileFilter });
 
 async function ensureHeroNotExist(req, res, next) {
   const phone = req.body.phone;
@@ -172,6 +196,41 @@ router.get("/:heroID/transactions", verifyJWT, async (req, res) => {
       const { transaksi, ...hero } = await heroModel.findById(heroIDJWT);
       res.json({ transaksi });
     } catch (error) {}
+  }
+});
+
+router.post("/:heroID/menus", upload.single("photo"), async (req, res) => {
+  // besok delete id dari dokumentasi openAPI dan tambahin _id
+  const heroID = req.params.heroID;
+  const { path } = req.file;
+  const { token, name, isfree, price } = req.body;
+  try {
+    const hero = await heroModel.findById(heroID);
+    const menuStructure = {
+      name,
+      photo: path,
+      hero: {
+        _id: hero._id,
+        name: hero.name,
+        phone: hero.phone,
+        alamat: hero.alamat,
+        transaksi: hero.transaksi,
+      },
+      isfree: JSON.parse(isfree),
+      price,
+    };
+    const menu = new menuModel({ ...menuStructure });
+    await menu.save();
+    res.json({
+      id: menu.id,
+      name: menu.name,
+      photo: menu.photo,
+      hero: menu.hero,
+      isfree: menu.isfree,
+      price: menu.price,
+    });
+  } catch (error) {
+    res.send(error);
   }
 });
 
