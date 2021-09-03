@@ -41,6 +41,11 @@ async function ensureHeroNotExist(req, res, next) {
 
 function verifyJWT(req, res, next) {
   const token = req.body.token;
+  // const isBodyFromMultipartFrom = req.is("multipart/form-data");
+  // if (isBodyFromMultipartFrom) {
+  //   console.log("body from multipart form");
+  // }
+
   jwt.verify(token, jwtsecret, (err, decoded) => {
     if (err) {
       res.status(401).json({ status: "Unauthorized" });
@@ -199,39 +204,49 @@ router.get("/:heroID/transactions", verifyJWT, async (req, res) => {
   }
 });
 
-router.post("/:heroID/menus", upload.single("photo"), async (req, res) => {
-  // besok delete id dari dokumentasi openAPI dan tambahin _id
-  const heroID = req.params.heroID;
-  const { path } = req.file;
-  const { token, name, isfree, price } = req.body;
-  try {
-    const hero = await heroModel.findById(heroID);
-    const menuStructure = {
-      name,
-      photo: path,
-      hero: {
-        _id: hero._id,
-        name: hero.name,
-        phone: hero.phone,
-        alamat: hero.alamat,
-        transaksi: hero.transaksi,
-      },
-      isfree: JSON.parse(isfree),
-      price,
-    };
-    const menu = new menuModel({ ...menuStructure });
-    await menu.save();
-    res.json({
-      id: menu.id,
-      name: menu.name,
-      photo: menu.photo,
-      hero: menu.hero,
-      isfree: menu.isfree,
-      price: menu.price,
-    });
-  } catch (error) {
-    res.send(error);
+router.post(
+  "/:heroID/menus",
+  upload.single("photo"),
+  verifyJWT,
+  async (req, res) => {
+    const heroID = req.params.heroID;
+    const { path } = req.file; // path photos
+    const { name, isfree, price } = req.body;
+    const heroIDJWT = res.locals.id;
+
+    if (heroID !== heroIDJWT) {
+      res.status(403).json({ status: "Forbidden" });
+    } else {
+      try {
+        const hero = await heroModel.findById(heroID);
+        const menuStructure = {
+          name,
+          photo: path,
+          hero: {
+            _id: hero._id,
+            name: hero.name,
+            phone: hero.phone,
+            alamat: hero.alamat,
+            transaksi: hero.transaksi,
+          },
+          isfree: JSON.parse(isfree),
+          price,
+        };
+        const menu = new menuModel({ ...menuStructure });
+        await menu.save();
+        res.json({
+          id: menu.id,
+          name: menu.name,
+          photo: menu.photo,
+          hero: menu.hero,
+          isfree: menu.isfree,
+          price: menu.price,
+        });
+      } catch (error) {
+        res.send(error);
+      }
+    }
   }
-});
+);
 
 module.exports = router;
