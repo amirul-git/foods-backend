@@ -41,10 +41,6 @@ async function ensureHeroNotExist(req, res, next) {
 
 function verifyJWT(req, res, next) {
   const token = req.body.token;
-  // const isBodyFromMultipartFrom = req.is("multipart/form-data");
-  // if (isBodyFromMultipartFrom) {
-  //   console.log("body from multipart form");
-  // }
 
   jwt.verify(token, jwtsecret, (err, decoded) => {
     if (err) {
@@ -201,6 +197,21 @@ router.get("/:heroID/transactions", verifyJWT, async (req, res) => {
       const { transaksi, ...hero } = await heroModel.findById(heroIDJWT);
       res.json({ transaksi });
     } catch (error) {}
+  }
+});
+
+router.get("/:heroID/menus", verifyJWT, async (req, res) => {
+  const heroID = req.params.heroID;
+  const heroIDJWT = res.locals.id;
+  if (heroID !== heroIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const heroMenus = await menuModel.find({ "hero._id": heroIDJWT });
+      res.json(heroMenus);
+    } catch (error) {
+      res.send(error);
+    }
   }
 });
 
