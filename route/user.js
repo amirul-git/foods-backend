@@ -6,6 +6,8 @@ const jwtsecret = "hayolo apa lo passwordnya";
 
 // mongoose model
 const userModel = require("../schema/userSchema");
+const menuModel = require("../schema/menuSchema");
+const orderModel = require("../schema/orderSchema");
 
 async function ensureUserNotExist(req, res, next) {
   const phone = req.body.phone;
@@ -101,4 +103,43 @@ router.put("/:userID", verifyJWT, async (req, res) => {
     }
   }
 });
+
+router.post("/:userID/menus/:menuID", verifyJWT, async (req, res) => {
+  const userID = req.params.userID;
+  const menuID = req.params.menuID;
+  const userIDJWT = res.locals.id;
+
+  if (userID !== userIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const user = await userModel.findById(userID);
+      const menu = await menuModel.findById(menuID);
+      const orderStructure = {
+        buyer: {
+          user: {
+            _id: user._id,
+            name: user.name,
+            phone: user.phone,
+            alamat: user.alamat,
+          },
+        },
+        menu: {
+          _id: menu._id,
+          name: menu.name,
+          photo: menu.photo,
+          hero: menu.hero,
+          isfree: menu.isfree,
+          price: menu.price,
+        },
+      };
+      const order = new orderModel({ ...orderStructure });
+      await order.save();
+      res.json({ status: "order success" });
+    } catch (error) {
+      res.send(error);
+    }
+  }
+});
+
 module.exports = router;
