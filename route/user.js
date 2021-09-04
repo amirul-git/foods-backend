@@ -82,4 +82,23 @@ router.get("/:userID", verifyJWT, async (req, res) => {
   }
 });
 
+router.put("/:userID", verifyJWT, async (req, res) => {
+  const userID = req.params.userID;
+  const userIDJWT = res.locals.id;
+  const { token, ...newUserProfile } = req.body;
+
+  if (userID !== userIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const user = await userModel.findById(userIDJWT);
+      user.name = newUserProfile.name;
+      user.alamat = newUserProfile.alamat;
+      await user.save();
+      res.json(user);
+    } catch (error) {
+      res.send(error);
+    }
+  }
+});
 module.exports = router;
