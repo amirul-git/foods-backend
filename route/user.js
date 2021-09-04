@@ -49,4 +49,37 @@ router.post("/register", ensureUserNotExist, async (req, res) => {
   } catch (error) {}
 });
 
+function verifyJWT(req, res, next) {
+  const token = req.body.token;
+  jwt.verify(token, jwtsecret, (err, decoded) => {
+    if (err) {
+      res.status(401).json({ status: "Unauthorized" });
+    } else {
+      // save decoded hero id to res.locals and go to next middleware
+      res.locals.id = decoded.id;
+      next();
+    }
+  });
+}
+
+router.get("/:userID", verifyJWT, async (req, res) => {
+  const userID = req.params.userID;
+  const userIDJWT = res.locals.id;
+  if (userID !== userIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const user = await userModel.findById(userIDJWT);
+      res.json({
+        _id: user._id,
+        nama: user.name,
+        phone: user.phone,
+        alamat: user.alamat,
+      });
+    } catch (error) {
+      res.send(error);
+    }
+  }
+});
+
 module.exports = router;
