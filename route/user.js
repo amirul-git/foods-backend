@@ -104,6 +104,34 @@ router.put("/:userID", verifyJWT, async (req, res) => {
   }
 });
 
+router.get("/:userID/menus", verifyJWT, async (req, res) => {
+  const { rt, rw, jalan, kelurahan, kota } = req.query;
+  const userID = req.params.userID;
+  const userIDJWT = res.locals.id;
+
+  if (userID !== userIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const menus = await menuModel.find({
+        "hero.alamat.rt": parseInt(rt),
+        "hero.alamat.rw": parseInt(rw),
+        "hero.alamat.jalan": jalan,
+        "hero.alamat.kelurahan": kelurahan,
+        "hero.alamat.kota": kota,
+      });
+      // if menu exist near user location
+      if (menus.length > 0) {
+        res.json(menus);
+      } else {
+        res.status(404).json({ status: "no menus near your location" });
+      }
+    } catch (error) {
+      res.send(error);
+    }
+  }
+});
+
 router.post("/:userID/menus/:menuID", verifyJWT, async (req, res) => {
   const userID = req.params.userID;
   const menuID = req.params.menuID;
