@@ -6,6 +6,7 @@ const { unlink } = require("fs");
 
 const heroModel = require("../schema/heroSchema");
 const menuModel = require("../schema/menuSchema");
+const orderSchema = require("../schema/orderSchema");
 const jwtsecret = "hayolo apa lo passwordnya";
 
 // multer implementation
@@ -198,6 +199,21 @@ router.get("/:heroID/transactions", verifyJWT, async (req, res) => {
       const { transaksi, ...hero } = await heroModel.findById(heroIDJWT);
       res.json({ transaksi });
     } catch (error) {}
+  }
+});
+
+router.get("/:heroID/orders", verifyJWT, async (req, res) => {
+  const heroID = req.params.heroID;
+  const heroIDJWT = res.locals.id;
+  if (heroID !== heroIDJWT) {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const orders = await orderSchema.find({ "menu.hero._id": `${heroID}` });
+      res.json(orders);
+    } catch (error) {
+      res.send(error);
+    }
   }
 });
 
