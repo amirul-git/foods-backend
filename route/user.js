@@ -6,6 +6,7 @@ const jwtsecret = "hayolo apa lo passwordnya";
 
 // mongoose model
 const userModel = require("../schema/userSchema");
+const heroModel = require("../schema/heroSchema");
 const menuModel = require("../schema/menuSchema");
 const orderModel = require("../schema/orderSchema");
 
@@ -143,6 +144,19 @@ router.post("/:userID/menus/:menuID", verifyJWT, async (req, res) => {
     try {
       const user = await userModel.findById(userID);
       const menu = await menuModel.findById(menuID);
+
+      // update transaksi both on hero and menu.hero when order happen
+      const hero = await heroModel.findById(menu.hero._id);
+      if (menu.isfree) {
+        hero.transaksi.impact += 1;
+        menu.hero.transaksi.impact += 1;
+      } else {
+        hero.transaksi.penjualan += 1;
+        menu.hero.transaksi.penjualan += 1;
+      }
+      await hero.save();
+      await menu.save();
+
       const orderStructure = {
         buyer: {
           user: {
