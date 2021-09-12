@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
+const cors = require("cors");
 const port = 3000;
 
 // route
@@ -10,6 +11,7 @@ const hero = require("./route/hero");
 const foodbank = require("./route/foodbank");
 
 // middleware
+app.use(cors());
 app.use(express.json());
 app.use("/photos", express.static(path.join(__dirname, "photos")));
 app.use("/user", user);
