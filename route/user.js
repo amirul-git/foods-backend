@@ -22,7 +22,7 @@ async function ensureUserNotExist(req, res, next) {
   }
 }
 
-router.get("/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { phone, password } = req.body;
   try {
     const user = await userModel.findOne({ phone, password });
@@ -53,7 +53,7 @@ router.post("/register", ensureUserNotExist, async (req, res) => {
 });
 
 function verifyJWT(req, res, next) {
-  const token = req.body.token;
+  const token = req.cookies.token;
   jwt.verify(token, jwtsecret, (err, decoded) => {
     if (err) {
       res.status(401).json({ status: "Unauthorized" });
