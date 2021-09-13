@@ -54,6 +54,7 @@ router.post("/register", ensureUserNotExist, async (req, res) => {
 
 function verifyJWT(req, res, next) {
   const token = req.cookies.token;
+  // console.log(token);
   jwt.verify(token, jwtsecret, (err, decoded) => {
     if (err) {
       res.status(401).json({ status: "Unauthorized" });
@@ -75,7 +76,7 @@ router.get("/:userID", verifyJWT, async (req, res) => {
       const user = await userModel.findById(userIDJWT);
       res.json({
         _id: user._id,
-        nama: user.name,
+        name: user.name,
         phone: user.phone,
         alamat: user.alamat,
       });
