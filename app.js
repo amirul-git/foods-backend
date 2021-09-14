@@ -14,7 +14,7 @@ const foodbank = require("./route/foodbank");
 // middleware
 app.use(
   cors({
-    origin: "http://localhost:3001",
+    origin: true,
     credentials: true,
   })
 );
