@@ -44,7 +44,7 @@ node_modules/
 jspm_packages/
 
 # photos storage dict
-photos/
+# photos/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
