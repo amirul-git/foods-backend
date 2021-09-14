@@ -42,7 +42,7 @@ async function ensureHeroNotExist(req, res, next) {
 }
 
 function verifyJWT(req, res, next) {
-  const token = req.body.token;
+  const token = req.cookies.token;
 
   jwt.verify(token, jwtsecret, (err, decoded) => {
     if (err) {
@@ -55,7 +55,7 @@ function verifyJWT(req, res, next) {
   });
 }
 
-router.get("/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { phone, password } = req.body;
   try {
     const hero = await heroModel.findOne({ phone, password });
