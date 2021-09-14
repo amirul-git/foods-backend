@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // route
 const user = require("./route/user");
@@ -32,11 +32,7 @@ mongoose
   .connect(
     "mongodb+srv://wh04m1:AdRQiujjrcX5PQA@cluster.9p65h.mongodb.net/foods?retryWrites=true&w=majority"
   )
-  .then(
-    app.listen(port, function () {
-      console.log("server running");
-    })
-  )
+  .then(app.listen(port))
   .catch((err) => {
     console.log(err);
   });
