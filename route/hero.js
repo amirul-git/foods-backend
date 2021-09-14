@@ -238,14 +238,15 @@ router.post(
   verifyJWT,
   async (req, res) => {
     const heroID = req.params.heroID;
-    const { path } = req.file; // path photos
-    const { name, isfree, price } = req.body;
     const heroIDJWT = res.locals.id;
 
     if (heroID !== heroIDJWT) {
       res.status(403).json({ status: "Forbidden" });
     } else {
       try {
+        const { path } = req.file; // path photos
+        const { name, isfree, price } = req.body;
+
         const hero = await heroModel.findById(heroID);
         const menuStructure = {
           name,
