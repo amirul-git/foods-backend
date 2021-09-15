@@ -232,51 +232,46 @@ router.get("/:heroID/menus", verifyJWT, async (req, res) => {
   }
 });
 
-router.post(
-  "/:heroID/menus",
-  upload.single("photo"),
-  verifyJWT,
-  async (req, res) => {
-    const heroID = req.params.heroID;
-    const heroIDJWT = res.locals.id;
+router.post("/:heroID/menus", upload.single("photo"), async (req, res) => {
+  const heroID = req.params.heroID;
+  // const heroIDJWT = res.locals.id;
 
-    if (heroID !== heroIDJWT) {
-      res.status(403).json({ status: "Forbidden" });
-    } else {
-      try {
-        const { path } = req.file; // path photos
-        const { name, isfree, price } = req.body;
+  if (heroID === "") {
+    res.status(403).json({ status: "Forbidden" });
+  } else {
+    try {
+      const { path } = req.file; // path photos
+      const { name, isfree, price } = req.body;
 
-        const hero = await heroModel.findById(heroID);
-        const menuStructure = {
-          name,
-          photo: path,
-          hero: {
-            _id: hero._id,
-            name: hero.name,
-            phone: hero.phone,
-            alamat: hero.alamat,
-            transaksi: hero.transaksi,
-          },
-          isfree: JSON.parse(isfree),
-          price,
-        };
-        const menu = new menuModel({ ...menuStructure });
-        await menu.save();
-        res.json({
-          id: menu.id,
-          name: menu.name,
-          photo: menu.photo,
-          hero: menu.hero,
-          isfree: menu.isfree,
-          price: menu.price,
-        });
-      } catch (error) {
-        res.send(error);
-      }
+      const hero = await heroModel.findById(heroID);
+      const menuStructure = {
+        name,
+        photo: path,
+        hero: {
+          _id: hero._id,
+          name: hero.name,
+          phone: hero.phone,
+          alamat: hero.alamat,
+          transaksi: hero.transaksi,
+        },
+        isfree: JSON.parse(isfree),
+        price,
+      };
+      const menu = new menuModel({ ...menuStructure });
+      await menu.save();
+      res.json({
+        id: menu.id,
+        name: menu.name,
+        photo: menu.photo,
+        hero: menu.hero,
+        isfree: menu.isfree,
+        price: menu.price,
+      });
+    } catch (error) {
+      res.send(error);
     }
   }
-);
+});
 
 router.get("/:heroID/menus/:menuID", verifyJWT, async (req, res) => {
   const { heroID, menuID } = req.params;
