@@ -42,7 +42,7 @@ async function ensureHeroNotExist(req, res, next) {
 }
 
 function verifyJWT(req, res, next) {
-  const token = req.cookies.token;
+  const token = req.header("token");
 
   jwt.verify(token, jwtsecret, (err, decoded) => {
     if (err) {
